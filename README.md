@@ -51,7 +51,7 @@ f5f35d3163d4        hyperledger/fabric-couchdb                                  
 
 
 
-#### 安装、初始化chaincode
+#### 安装、初始化、更新chaincode
 
 首先进入cli容器
 
@@ -92,6 +92,31 @@ peer chaincode install -n $CC_NAME -v $VERSION -l $LANGUAGE -p $CC_SRC_PATH
 ```bash
 peer chaincode instantiate -o $ORDERER_ADDRESS --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n $CC_NAME -l $LANGUAGE -v $VERSION -c '{"Args":[""]}' -P "$DEFAULT_POLICY"
 ```
+
+更新chaincode
+
+```bash
+export VERSION="1.1"
+
+source ./scripts/setparas.sh peerenv 0 1
+peer chaincode install -n $CC_NAME -v $VERSION -l $LANGUAGE -p $CC_SRC_PATH
+ 
+source ./scripts/setparas.sh peerenv 0 2
+export CORE_PEER_ADDRESS=peer0.org2.example.com:9051
+peer chaincode install -n $CC_NAME -v $VERSION -l $LANGUAGE -p $CC_SRC_PATH
+ 
+source ./scripts/setparas.sh peerenv 1 1
+export CORE_PEER_ADDRESS=peer1.org1.example.com:8051
+peer chaincode install -n $CC_NAME -v $VERSION -l $LANGUAGE -p $CC_SRC_PATH
+ 
+source ./scripts/setparas.sh peerenv 1 2
+export CORE_PEER_ADDRESS=peer1.org2.example.com:10051
+peer chaincode install -n $CC_NAME -v $VERSION -l $LANGUAGE -p $CC_SRC_PATH
+
+peer chaincode upgrade -o $ORDERER_ADDRESS --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n $CC_NAME -v $VERSION -c '{"Args":[""]}' -P "$DEFAULT_POLICY"
+```
+
+
 
 #### 增改查
 
@@ -150,6 +175,13 @@ mychannel  通道名称
 checjinsystem   链码名称
 ```
 
+#### 查看日志
 
+例如：查看当前版本的peer0.org1.example.com的日志
+
+```bash
+docker ps |grep dev-peer0.org1.example.com-checkinsystem
+docker logs -f docker logs -f dev-peer0.org1.example.com-checkinsystem-1.8
+```
 
 #### 未完待续。。。
