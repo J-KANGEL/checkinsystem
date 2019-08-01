@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	//"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
     sc "github.com/hyperledger/fabric/protos/peer"
@@ -41,8 +42,10 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.create(APIstub, args)
 	} else if function == "list" {
 		return s.list(APIstub)
-	} else if function == "update" {
-		return s.update(APIstub, args)
+	} else if function == "updateWork" {
+		return s.updateWork(APIstub, args)
+	} else if function == "updateSalary" {
+		return s.updateSalary(APIstub, args)
 	} 
 
 	return shim.Error("Invalid Smart Contract function name.")
@@ -154,7 +157,35 @@ func (s *SmartContract) list(APIstub shim.ChaincodeStubInterface) sc.Response {
     return shim.Success(buffer.Bytes())
 }
 
-func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+func (s *SmartContract) updateWork(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+    fmt.Println("Account update start")
+    if len(args) != 4 {
+        return shim.Error("Incorrect number of arguments. Expecting 4")
+    }
+
+    accountAsBytes, _ := APIstub.GetState(args[0])
+    account := Account{}
+
+    json.Unmarshal(accountAsBytes, &account)
+    time, _ := strconv.Atoi(args[1])
+    load, _ := strconv.Atoi(args[2])
+    price, _ := strconv.Atoi(args[3])
+
+    account.Worktime = time
+    account.Workload = load
+    account.Workprice = price
+    fmt.Println("Account update Worktime:",args[1])
+    fmt.Println("Account update Workload:",args[2])
+    fmt.Println("Account update Workprice:",args[3])
+
+    accountAsBytes, _ = json.Marshal(account)
+    APIstub.PutState(args[0], accountAsBytes)
+
+    fmt.Println("Account update end")
+    return shim.Success(nil)
+}
+
+func (s *SmartContract) updateSalary(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
     fmt.Println("Account update start")
     if len(args) != 2 {
         return shim.Error("Incorrect number of arguments. Expecting 2")
@@ -164,9 +195,11 @@ func (s *SmartContract) update(APIstub shim.ChaincodeStubInterface, args []strin
     account := Account{}
 
     json.Unmarshal(accountAsBytes, &account)
-    int5, _ := strconv.Atoi(args[1])
-    account.Worktime = int5
-    fmt.Println("Account update Worktime:",args[1])
+    salary, _ := strconv.Atoi(args[1])
+
+    account.SalaryPer = salary
+    fmt.Println("Account update SalaryPer:",args[1])
+
     accountAsBytes, _ = json.Marshal(account)
     APIstub.PutState(args[0], accountAsBytes)
 
